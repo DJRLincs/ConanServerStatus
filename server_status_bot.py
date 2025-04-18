@@ -6,20 +6,23 @@ from datetime import UTC
 import logging
 import a2s
 import aiohttp
-
+import time 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 
 # Configuration
 CONFIG = {
-    'BOT_TOKEN': 'YOUR_BOT_TOKEN_HERE',  # Discord bot token (get from Discord Developer Portal)
-    'SERVER_IP': 'YOUR_SERVER_IP',       # Game server IP (e.g., '148.113.199.214')
+    'BOT_TOKEN': 'BOT_TOKEN',  # Discord bot token (get from Discord Developer Portal)
+    'SERVER_IP': 'SERVER_IP',       # Game server IP (e.g., '148.113.199.214')
     'SERVER_PORT': 27015,                # Game server port (e.g., 27015)
-    'SERVER_CHANNEL_ID': 0,              # Discord channel ID for status updates (e.g., 1252566121073344564)
-    'STEAM_URL': 'steam://connect/YOUR_SERVER_IP:YOUR_SERVER_PORT',  # Steam connect URL
-    'HIDE_PLAYER_NAMES': False,          # True: show "Player 1", False: show real names
-    'FALLBACK_API_URL': None             # Optional: URL for fallback API (e.g., 'http://localhost:3000/server')
+    'SERVER_CHANNEL_ID': 1252566121073344564,              # Discord channel ID for status updates (e.g., 1252566121073344564)
+    'STEAM_URL': 'steam://connect/SERVER_IP:27015',  # Steam connect URL
+    'HIDE_PLAYER_NAMES': True,          # True: show "Player 1", False: show real names
+    'FALLBACK_API_URL': None,             # Optional: URL for fallback API (e.g., 'http://localhost:3000/server')
+    'SERVER_MESSAGE_ID': None,            # Optional: ID of the message to update (if you want to edit an existing message)
 }
+
+SERVER_MESSAGE_ID = None
 
 # Bot setup
 intents = discord.Intents.default()
@@ -47,6 +50,7 @@ def create_server_embed(server_data, status='Online'):
     embed.add_field(name='Status', value=status, inline=False)
     embed.add_field(name='Map', value=server_data.get('map', 'Unknown'), inline=True)
     embed.add_field(name='Players', value=f"{server_data.get('players', 0)}/{server_data.get('max_players', 0)}", inline=True)
+    
     player_list = server_data.get('player_list', [])
     if CONFIG['HIDE_PLAYER_NAMES'] != "off" and player_list:
         now = int(time.time())
@@ -59,6 +63,10 @@ def create_server_embed(server_data, status='Online'):
         embed.add_field(name='Players Online', value=players_text, inline=False)
     elif CONFIG['HIDE_PLAYER_NAMES'] != "off":
         embed.add_field(name='Players Online', value=f"{server_data.get('players', 0)} players (names unavailable)", inline=False)
+
+    # Set footer with clickable GitHub source link and timestamp
+    embed.set_footer(text="Source: DJRLincs/ConanServerStatus")
+
     return embed
 
 # Function to query the server
@@ -95,9 +103,9 @@ async def query_server():
         return None
 
 # Task to update server status embed
-@tasks.loop(minutes=5)  # Every 5 minutes
+@tasks.loop(minutes=5)
 async def update_server_status():
-    global SERVER_MESSAGE_ID
+    global SERVER_MESSAGE_ID  # ← Move this to the top of the function
     try:
         channel = bot.get_channel(CONFIG['SERVER_CHANNEL_ID'])
         if not channel:
@@ -113,7 +121,7 @@ async def update_server_status():
                 status='Offline'
             )
 
-        view = ServerButtonView()  # Add button view
+        view = ServerButtonView()
 
         if SERVER_MESSAGE_ID:
             try:
@@ -123,17 +131,16 @@ async def update_server_status():
             except discord.errors.NotFound:
                 logging.warning("Server status message not found, sending new one.")
                 message = await channel.send(embed=embed, view=view)
-                global SERVER_MESSAGE_ID
                 SERVER_MESSAGE_ID = message.id
                 logging.info(f"Sent new server status message with ID {SERVER_MESSAGE_ID}.")
         else:
             message = await channel.send(embed=embed, view=view)
-            global SERVER_MESSAGE_ID
             SERVER_MESSAGE_ID = message.id
             logging.info(f"Sent initial server status message with ID {SERVER_MESSAGE_ID}.")
 
     except Exception as e:
         logging.error(f"Error in update_server_status: {e}")
+
 
 @bot.event
 async def on_ready():
