@@ -16,7 +16,7 @@ CONFIG = {
     'SERVER_IP': 'SERVER_IP',       # Game server IP (e.g., '148.113.199.214')
     'SERVER_PORT': 27015,                # Game server port (e.g., 27015)
     'SERVER_CHANNEL_ID': 1252566121073344564,              # Discord channel ID for status updates (e.g., 1252566121073344564)
-    'STEAM_URL': 'steam://connect/SERVER_IP:27015',  # Steam connect URL
+    'STEAM_URL': 'steam://connect/SERVER_IP:PORT',  # Steam connect URL & or Discord Channel id (e.g., <#1318050934617538580>) you will need to remove ` from before and after {CONFIG['STEAM_URL']} however)
     'HIDE_PLAYER_NAMES': True,          # True: show "Player 1", False: show real names
     'FALLBACK_API_URL': None,             # Optional: URL for fallback API (e.g., 'http://localhost:3000/server')
     'SERVER_MESSAGE_ID': None,            # Optional: ID of the message to update (if you want to edit an existing message)
