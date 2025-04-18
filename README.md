@@ -1,22 +1,29 @@
-# ConanServerStatus
+# Conan Server Status Bot
 
+A Discord bot that monitors and displays the status of a Conan Exiles server, including server name, map, player count, and online players. The bot updates every 5 minutes and includes a "Join Server" button with a Steam connect link.
 
-Conan Exiles Server Status Bot
-This Discord bot queries a game server (using A2S protocol) and displays its status in an embed,
-updated every 5 minutes. It includes a "Join Server" button linking to the server via Steam.
-The bot can optionally use a fallback API for server data if configured.
+Author: JohnTheMedic/DJRLincs
 
-Dependencies:
-- discord.py (`pip install discord.py`)
-- a2s (`pip install python-a2s`)
-- aiohttp (`pip install aiohttp`)
+## Features
+- Displays server status (Online/Offline)
+- Shows server name, map, and player count
+- Lists online players (optionally anonymized as "Player 1", "Player 2", etc.)
+- Provides a clickable Steam connect link
+- Updates server status every 5 minutes
+- Supports fallback API for server queries (optional)
+- Logs errors and status updates for debugging
 
-Setup:
-1. Install dependencies listed above.
-2. Update the CONFIG dictionary below with your Discord bot token, server details, and channel ID.
-3. Run the script: `python server_status_bot.py`
+## Prerequisites
+- Python 3.8 or higher
+- A Discord bot token from the [Discord Developer Portal](https://discord.com/developers/applications)
+- A Conan Exiles server with a public IP and port
+- (Optional) A fallback API for server queries
 
-Note: Ensure the Discord bot has permissions to read/send messages and manage embeds in the target channel.
+## Installation
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/DJRLincs/ConanServerStatus.git
+   cd ConanServerStatus
 
 ## License
 
