@@ -19,7 +19,6 @@ CONFIG = {
     'SERVER_CHANNEL_ID': 0,              # Discord channel ID for status updates (e.g., 1252566121073344564)
     'STEAM_URL': 'steam://connect/YOUR_SERVER_IP:YOUR_SERVER_PORT',  # Steam connect URL
     'HIDE_PLAYER_NAMES': False,          # True: show "Player 1", False: show real names
-    'FALLBACK_API_URL': None             # Optional: URL for fallback API (e.g., 'http://localhost:3000/server')
 }
 
 # Bot setup
