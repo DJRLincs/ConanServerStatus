@@ -1,6 +1,6 @@
 # ConanServerStatus
 
-"""
+
 Conan Exiles Server Status Bot
 This Discord bot queries a game server (using A2S protocol) and displays its status in an embed,
 updated every 5 minutes. It includes a "Join Server" button linking to the server via Steam.
@@ -17,4 +17,3 @@ Setup:
 3. Run the script: `python server_status_bot.py`
 
 Note: Ensure the Discord bot has permissions to read/send messages and manage embeds in the target channel.
-"""
