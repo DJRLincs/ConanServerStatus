@@ -37,13 +37,13 @@ class ServerButtonView(View):
     
     @discord.ui.button(label="Join Server", style=discord.ButtonStyle.primary)
     async def join_button(self, interaction: discord.Interaction, button: Button):
-        await interaction.response.send_message(f"Join the server: `{CONFIG['STEAM_URL']}`", ephemeral=True)
+        await interaction.response.send_message(f"Join the server: {CONFIG['STEAM_URL']}", ephemeral=True)
 
 # Function to create the server status embed
 def create_server_embed(server_data, status='Online'):
     embed = discord.Embed(
         title=server_data.get('name', 'Conan Exiles Server'),
-        description=f"Join the server: `{CONFIG['STEAM_URL']}`",
+        description=f"Join the server: {CONFIG['STEAM_URL']}",
         color=discord.Color.blue() if status == 'Online' else discord.Color.red(),
         timestamp=datetime.datetime.now(UTC)
     )
@@ -54,13 +54,46 @@ def create_server_embed(server_data, status='Online'):
     player_list = server_data.get('player_list', [])
     if CONFIG['HIDE_PLAYER_NAMES'] != "off" and player_list:
         now = int(time.time())
+        # Prepare player text
         if CONFIG['HIDE_PLAYER_NAMES']:
-            # Use fake names like "Player 1", "Player 2", etc.
-            players_text = '\n'.join([f"Player {i+1} (Time: <t:{now - p['duration'] * 60}:R>)" for i, p in enumerate(player_list)])
+            players = [f"Player {i+1} (Time: <t:{now - p['duration'] * 60}:t> <t:{now - p['duration'] * 60}:R>)" for i, p in enumerate(player_list)]
         else:
-            # Use actual names or "Unknown"
-            players_text = '\n'.join([f"{p['name']} (Time: <t:{now - p['duration'] * 60}:R>)" for p in player_list])
-        embed.add_field(name='Players Online', value=players_text, inline=False)
+            players = [f"{p['name']} (Time: <t:{now - p['duration'] * 60}:t> <t:{now - p['duration'] * 60}:R>)" for p in player_list]
+        
+        # Split players into multiple fields to respect 1024-char limit per field
+        current_field = []
+        char_count = 0
+        for player in players:
+            player_len = len(player) + 1  # +1 for newline
+            if char_count + player_len > 1024:
+                embed.add_field(
+                    name='Players Online',
+                    value='\n'.join(current_field) or 'None',
+                    inline=False
+                )
+                current_field = [player]
+                char_count = player_len
+            else:
+                current_field.append(player)
+                char_count += player_len
+        
+        # Add the last field if there are players left
+        if current_field:
+            embed.add_field(
+                name='Players Online',
+                value='\n'.join(current_field) or 'None',
+                inline=False
+            )
+        
+        # Check total embed size (rough estimate)
+        total_chars = len(embed.title) + len(embed.description or '') + sum(len(f.name) + len(f.value) for f in embed.fields)
+        if total_chars > 5500:  # Leave buffer below 6000
+            embed.clear_fields()
+            embed.add_field(name='Status', value=status, inline=False)
+            embed.add_field(name='Map', value=server_data.get('map', 'Unknown'), inline=True)
+            embed.add_field(name='Players', value=f"{server_data.get('players', 0)}/{server_data.get('max_players', 0)}", inline=True)
+            embed.add_field(name='Players Online', value=f"{server_data.get('players', 0)} players (too many to list)", inline=False)
+    
     elif CONFIG['HIDE_PLAYER_NAMES'] != "off":
         embed.add_field(name='Players Online', value=f"{server_data.get('players', 0)} players (names unavailable)", inline=False)
 
@@ -105,9 +138,9 @@ async def query_server():
 # Task to update server status embed
 @tasks.loop(minutes=5)
 async def update_server_status():
-    global SERVER_MESSAGE_ID  # ← Move this to the top of the function
+    global SERVER_MESSAGE_ID
     try:
-        channel = bot.get_channel(CONFIG['SERVER_CHANNEL_ID'])
+        channel = bot.get_channel(1252566121073344564)
         if not channel:
             logging.error(f"Server channel with ID {CONFIG['SERVER_CHANNEL_ID']} not found.")
             return
@@ -140,7 +173,6 @@ async def update_server_status():
 
     except Exception as e:
         logging.error(f"Error in update_server_status: {e}")
-
 
 @bot.event
 async def on_ready():
